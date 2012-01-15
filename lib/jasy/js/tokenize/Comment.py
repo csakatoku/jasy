@@ -111,7 +111,13 @@ jsdocFlags = re.compile(r"^@(deprecated|private|public|static)")
 # - @version Version
 jsdocData = re.compile(r"^@(name|namespace|requires|since|version)\s+(\S+)")
 
-
+# Supports:
+# - @name {Name}
+# - @require {Name}
+# - @optional {Name}
+# - @break {Name}
+# - @asset {Path}
+jasyMetaData = re.compile(r"^@(name|require|optional|break|asset)\s+(?:\{(\S+)\})")
 
 # Used to measure the doc indent size (with leading stars in front of content)
 docIndentReg = re.compile(r"^(\s*\*\s*)(\S*)")
@@ -449,6 +455,18 @@ class Comment():
                 self.tags[matched.group(1)] = True
                 continue
             
+            matched = jasyMetaData.match(line)
+            if matched:
+                if self.tags is None:
+                    self.tags = {}
+
+                tagName, tagValue = matched.groups()
+                if tagName == 'name':
+                    self.tags[tagName] = tagValue
+                else:
+                    self.tags.setdefault(tagName, []).append(tagValue)
+                continue
+
             matched = jsdocData.match(line)
             if matched:
                 if self.tags is None:

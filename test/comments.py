@@ -1241,6 +1241,41 @@ class TestComments(unittest.TestCase):
         self.assertEqual(comment.tags["deprecated"], True)
         self.assertEqual(comment.tags["version"], "1.2")
         self.assertEqual(comment.tags["since"], "0.3")
+
+    def test_doc_tags_jasy_metadata_tags(self):
+
+        parsed = self.process('''
+
+        /**
+         * Comment before metadata
+         *
+         * @asset {app/*}
+         * @asset {lib/*}
+         * @require {core.polyfill.requestAnimationFrame}
+         * @require {Scroller}
+         * @optional {ClassA}
+         * @optional {ClassB}
+         * @break {ClassC}
+         * @break {ClassD}
+         *
+         * Comment after metadata
+         */
+
+        ''')
+
+        self.assertEqual(parsed.type, "script")
+        self.assertEqual(isinstance(parsed.comments, list), True)
+        self.assertEqual(len(parsed.comments), 1)
+
+        comment = parsed.comments[0]
+
+        self.assertEqual(comment.variant, "doc")
+        self.assertEqual(comment.html, "<p>Comment before metadata</p>\n\n<p>Comment after metadata</p>\n")
+        self.assertEqual(type(comment.tags), dict)
+        self.assertEqual(comment.tags["asset"], ["app/*", "lib/*"])
+        self.assertEqual(comment.tags["require"], ["core.polyfill.requestAnimationFrame", "Scroller"])
+        self.assertEqual(comment.tags["optional"], ["ClassA", "ClassB"])
+        self.assertEqual(comment.tags["break"], ["ClassC", "ClassD"])
     
     
     #
